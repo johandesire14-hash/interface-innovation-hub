@@ -92,3 +92,5 @@
 7.3. Vérifier les rendus desktop et mobile.
 
 7.4. Avant publication, exécuter au minimum la compilation, le contrôle du diff Git et une vérification visuelle ou navigateur des écrans concernés.
+
+- tsconfig: exactOptionalPropertyTypes, noUncheckedIndexedAccess and noPropertyAccessFromIndexSignature are off because the imported afhub codebase was written without them.

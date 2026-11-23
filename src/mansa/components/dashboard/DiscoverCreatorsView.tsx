@@ -27,6 +27,7 @@ export const PLATFORM_CREATOR_OFFERS: CreatorPlatformOffer[] = PLATFORM_OFFERS_C
 export interface CreatorEnterpriseCard {
   id: string;
   companyId: string;
+  creatorId?: string;
   companyName: string;
   creatorName: string;
   companyLogo?: string;

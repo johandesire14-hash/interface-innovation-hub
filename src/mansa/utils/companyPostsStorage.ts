@@ -1,3 +1,6 @@
+export type CompanyPostMedia = { url: string; name: string; type: string };
+export type CompanyPostPoll = { question: string; options: string[]; votes: number[] };
+
 export interface CompanyPost {
   id: string;
   companyId: string;
@@ -73,6 +76,7 @@ export function createCompanyPost(
     category?: string;
     media?: { url: string; name: string; type: string };
     poll?: { question: string; options: string[]; votes: number[] };
+    paidPublication?: boolean;
   },
 ): CompanyPost {
   const all = getAllStoredPosts();

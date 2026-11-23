@@ -21,7 +21,7 @@ export async function getAffiliateInvitationHistory(
     query(collection(db, "transactions"), where("creatorId", "==", affiliateUid)),
   );
   return snapshot.docs
-    .map((document) => {
+    .map((document): AffiliateInvitation | null => {
       const raw = document.data() as Record<string, unknown>;
       const isAffiliateEvent =
         raw["type"] === "affiliate" ||
@@ -45,7 +45,7 @@ export async function getAffiliateInvitationHistory(
         createdAt: raw["timestamp"] || raw["createdAt"],
         ...(Number.isFinite(amount) ? { amount } : {}),
         ...(typeof raw["currency"] === "string" ? { currency: raw["currency"] } : {}),
-      } satisfies AffiliateInvitation;
+      } as AffiliateInvitation;
     })
     .filter((item): item is AffiliateInvitation => item !== null)
     .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));

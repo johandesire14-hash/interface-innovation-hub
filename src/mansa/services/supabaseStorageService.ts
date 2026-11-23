@@ -8,6 +8,7 @@ export interface UploadedOfferFileResult {
   fileName: string;
   fileSize: number;
   mimeType: string;
+  updatedAt?: string;
 }
 
 /**

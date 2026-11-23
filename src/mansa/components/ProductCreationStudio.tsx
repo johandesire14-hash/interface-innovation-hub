@@ -99,6 +99,7 @@ export interface FaqItem {
 
 export interface CreatedProductData {
   id: string;
+  status?: "active" | "paused";
   productType: ProductTypeCategory;
   name: string;
   priceDisplay: string;

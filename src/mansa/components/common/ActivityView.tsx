@@ -43,7 +43,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({ userKey, onOpenCompa
   const publicById = new Map(publicCompanies.map((company) => [company.id, company]));
   const products = companies.flatMap((item) => {
     const purchased = item.purchasedOfferIds || item.unlockedProductIds || [];
-    return purchased.map((productId) => ({
+    return purchased.map((productId: string) => ({
       productId,
       companyName: item.companyName,
       productName: item.productName,

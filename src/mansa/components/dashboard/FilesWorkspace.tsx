@@ -219,7 +219,7 @@ export const FilesWorkspace: React.FC<FilesWorkspaceProps> = ({
         type: selectedFile.type || "application/octet-stream",
         productIds: [...productIds],
         storageKey: stored.storagePath,
-        updatedAt: stored.updatedAt,
+        updatedAt: stored.updatedAt ?? new Date().toISOString(),
       };
       const nextFiles = [...files, newFile];
       await persistFiles(nextFiles);
@@ -280,7 +280,7 @@ export const FilesWorkspace: React.FC<FilesWorkspaceProps> = ({
           sizeBytes: selectedFile.size,
           type: selectedFile.type || "application/octet-stream",
           storageKey: stored.storagePath,
-          updatedAt: stored.updatedAt,
+          updatedAt: stored.updatedAt ?? new Date().toISOString(),
         };
       }
       const nextFiles = files.map((file) => (file.id === editingFile.id ? updatedFile : file));
