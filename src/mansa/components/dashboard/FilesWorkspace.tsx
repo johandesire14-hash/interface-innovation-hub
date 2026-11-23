@@ -148,15 +148,17 @@ export const FilesWorkspace: React.FC<FilesWorkspaceProps> = ({
     };
   }, [productIds]);
 
-  const linkedProductNames = useMemo(
+  const filesByProduct = useMemo(
     () =>
-      productIds.map(
-        (id) =>
+      productIds.map((id) => ({
+        id,
+        name:
           products.find((product) => product.id === id)?.title ||
           products.find((product) => product.id === id)?.name ||
           "Offre sélectionnée",
-      ),
-    [productIds, products],
+        files: files.filter((file) => file.productIds.includes(id)),
+      })),
+    [productIds, products, files],
   );
 
   const persistFiles = async (nextFiles: FileItem[]) => {
@@ -376,16 +378,6 @@ export const FilesWorkspace: React.FC<FilesWorkspaceProps> = ({
             Les fichiers sont enregistrés dans votre bibliothèque et restent disponibles sur vos
             appareils.
           </p>
-          <div className="flex flex-wrap gap-2">
-            {linkedProductNames.map((name, index) => (
-              <span
-                key={`${name}-${index}`}
-                className="rounded-lg border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-[11px] font-semibold text-blue-300"
-              >
-                Lié à {name}
-              </span>
-            ))}
-          </div>
           {saveError && (
             <p role="alert" className="text-xs text-red-300">
               {saveError}
@@ -410,65 +402,70 @@ export const FilesWorkspace: React.FC<FilesWorkspaceProps> = ({
               </button>
             </div>
           ) : (
-            <div className="space-y-2">
-              {files.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0c0d0e] px-4 py-3"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
-                      <FileText className="size-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-white">{file.name}</div>
-                      <div className="mt-1 text-[11px] text-zinc-500">
-                        {file.size} · {file.type || "Fichier"} ·{" "}
-                        {file.productIds
-                          .map(
-                            (id) =>
-                              products.find((product) => product.id === id)?.title ||
-                              products.find((product) => product.id === id)?.name ||
-                              id,
-                          )
-                          .join(", ")}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-lg bg-zinc-500/10 px-2.5 py-1 text-[10px] font-semibold text-zinc-300">
-                      Ressource liée
+            <div className="space-y-6">
+              {filesByProduct
+                .filter((group) => group.files.length > 0)
+                .map((group) => (
+                  <section key={group.id} className="space-y-2">
+                    <span className="inline-flex rounded-lg border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-[11px] font-semibold text-blue-300">
+                      Lié à {group.name}
                     </span>
-                    <button
-                      type="button"
-                      disabled={isSaving}
-                      onClick={() => beginEdit(file, "rename")}
-                      aria-label={`Renommer ${file.name}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-300 hover:bg-white/5 disabled:opacity-40"
-                    >
-                      <Pencil className="size-3.5" /> Renommer
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isSaving}
-                      onClick={() => beginEdit(file, "replace")}
-                      aria-label={`Remplacer ${file.name}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-300 hover:bg-white/5 disabled:opacity-40"
-                    >
-                      <Replace className="size-3.5" /> Remplacer
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isSaving}
-                      onClick={() => void handleDeleteFile(file)}
-                      aria-label={`Supprimer ${file.name}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 px-2.5 py-1.5 text-[11px] font-semibold text-red-300 hover:bg-red-500/10 disabled:opacity-40"
-                    >
-                      <Trash2 className="size-3.5" /> Supprimer
-                    </button>
-                  </div>
-                </div>
-              ))}
+                    <div className="space-y-2">
+                      {group.files.map((file) => (
+                        <div
+                          key={`${group.id}-${file.id}`}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0c0d0e] px-4 py-3"
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                              <FileText className="size-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold text-white">
+                                {file.name}
+                              </div>
+                              <div className="mt-1 text-[11px] text-zinc-500">
+                                {file.size} · {file.type || "Fichier"}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-lg bg-zinc-500/10 px-2.5 py-1 text-[10px] font-semibold text-zinc-300">
+                              Ressource liée
+                            </span>
+                            <button
+                              type="button"
+                              disabled={isSaving}
+                              onClick={() => beginEdit(file, "rename")}
+                              aria-label={`Renommer ${file.name}`}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-300 hover:bg-white/5 disabled:opacity-40"
+                            >
+                              <Pencil className="size-3.5" /> Renommer
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isSaving}
+                              onClick={() => beginEdit(file, "replace")}
+                              aria-label={`Remplacer ${file.name}`}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-300 hover:bg-white/5 disabled:opacity-40"
+                            >
+                              <Replace className="size-3.5" /> Remplacer
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isSaving}
+                              onClick={() => void handleDeleteFile(file)}
+                              aria-label={`Supprimer ${file.name}`}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 px-2.5 py-1.5 text-[11px] font-semibold text-red-300 hover:bg-red-500/10 disabled:opacity-40"
+                            >
+                              <Trash2 className="size-3.5" /> Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ))}
             </div>
           )}
         </>
