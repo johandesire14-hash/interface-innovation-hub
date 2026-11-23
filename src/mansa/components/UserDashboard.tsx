@@ -304,6 +304,7 @@ export const CreatorCoursesWorkspace: React.FC<{
   };
   type CreatorCourse = {
     id: string;
+    offerId: string;
     title: string;
     description: string;
     chapters: CourseChapter[];
@@ -325,6 +326,7 @@ export const CreatorCoursesWorkspace: React.FC<{
         (data || []).forEach((row: any) => {
           const course = byId.get(row.id) || {
             id: row.id,
+            offerId: row.offer_id,
             title: row.title || "Cours sans titre",
             description: row.description || "",
             chapters: [],
@@ -710,9 +712,7 @@ export const CreatorCoursesWorkspace: React.FC<{
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-wider text-purple-400">
-            {linkedProducts.length
-              ? `Lié à ${linkedProducts.map((product) => product.title || product.name).join(", ")}`
-              : "Application Cours & Formations"}
+            Application Cours & Formations
           </div>
           <h1 className="mt-1 text-2xl font-bold text-white">Cours & Formations</h1>
           <p className="mt-1 text-xs text-zinc-400">
@@ -729,29 +729,46 @@ export const CreatorCoursesWorkspace: React.FC<{
       {isLoadingCourses ? (
         <p className="text-sm text-zinc-400">Chargement des cours…</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <button
-            onClick={startNewCourse}
-            className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-[#0c0d0e] text-zinc-400 hover:border-purple-500/60 hover:text-white"
-          >
-            <span className="mb-3 flex size-12 items-center justify-center rounded-full border border-white/15 text-3xl">
-              +
-            </span>
-            <span className="text-sm font-semibold">Ajouter un cours</span>
-          </button>
-          {courses.map((course) => (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <button
-              key={course.id}
-              onClick={() => editCourse(course)}
-              className="min-h-44 rounded-xl border border-white/10 bg-[#121316] p-4 text-left hover:border-purple-500/50"
+              onClick={startNewCourse}
+              className="flex min-h-44 flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-[#0c0d0e] text-zinc-400 hover:border-purple-500/60 hover:text-white"
             >
-              <div className="flex size-10 items-center justify-center rounded-lg bg-purple-500/15 text-purple-300">
-                <GraduationCap className="size-5" />
-              </div>
-              <div className="mt-5 text-sm font-bold text-white">{course.title}</div>
-              <div className="mt-1 text-xs text-zinc-500">{course.chapters.length} chapitre(s)</div>
+              <span className="mb-3 flex size-12 items-center justify-center rounded-full border border-white/15 text-3xl">
+                +
+              </span>
+              <span className="text-sm font-semibold">Ajouter un cours</span>
             </button>
-          ))}
+          </div>
+          {linkedProducts.map((product) => {
+            const productCourses = courses.filter((course) => course.offerId === product.id);
+            if (!productCourses.length) return null;
+            return (
+              <section key={product.id} className="space-y-2">
+                <span className="inline-flex rounded-lg border border-purple-500/20 bg-purple-500/10 px-3 py-1.5 text-[11px] font-semibold text-purple-300">
+                  Lié à {product.title || product.name}
+                </span>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {productCourses.map((course) => (
+                    <button
+                      key={course.id}
+                      onClick={() => editCourse(course)}
+                      className="min-h-44 rounded-xl border border-white/10 bg-[#121316] p-4 text-left hover:border-purple-500/50"
+                    >
+                      <div className="flex size-10 items-center justify-center rounded-lg bg-purple-500/15 text-purple-300">
+                        <GraduationCap className="size-5" />
+                      </div>
+                      <div className="mt-5 text-sm font-bold text-white">{course.title}</div>
+                      <div className="mt-1 text-xs text-zinc-500">
+                        {course.chapters.length} chapitre(s)
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
       )}
     </div>
