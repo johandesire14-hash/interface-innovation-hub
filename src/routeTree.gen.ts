@@ -16,7 +16,6 @@ import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as TmpCoursesCheckRouteImport } from './routes/tmp-courses-check'
 import { Route as AffiliateCodeRouteImport } from './routes/affiliate.$code'
 
 const IndexRoute = IndexRouteImport.update({
@@ -54,11 +53,6 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TmpCoursesCheckRoute = TmpCoursesCheckRouteImport.update({
-  id: '/tmp-courses-check',
-  path: '/tmp-courses-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AffiliateCodeRoute = AffiliateCodeRouteImport.update({
   id: '/affiliate/$code',
   path: '/affiliate/$code',
@@ -73,7 +67,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/privacy': typeof PrivacyRoute
-  '/tmp-courses-check': typeof TmpCoursesCheckRoute
   '/affiliate/$code': typeof AffiliateCodeRoute
 }
 export interface FileRoutesByTo {
@@ -84,7 +77,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/privacy': typeof PrivacyRoute
-  '/tmp-courses-check': typeof TmpCoursesCheckRoute
   '/affiliate/$code': typeof AffiliateCodeRoute
 }
 export interface FileRoutesById {
@@ -96,7 +88,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/privacy': typeof PrivacyRoute
-  '/tmp-courses-check': typeof TmpCoursesCheckRoute
   '/affiliate/$code': typeof AffiliateCodeRoute
 }
 export interface FileRouteTypes {
@@ -109,7 +100,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/mentions-legales'
     | '/privacy'
-    | '/tmp-courses-check'
     | '/affiliate/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -120,7 +110,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/mentions-legales'
     | '/privacy'
-    | '/tmp-courses-check'
     | '/affiliate/$code'
   id:
     | '__root__'
@@ -131,7 +120,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/mentions-legales'
     | '/privacy'
-    | '/tmp-courses-check'
     | '/affiliate/$code'
   fileRoutesById: FileRoutesById
 }
@@ -143,7 +131,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   PrivacyRoute: typeof PrivacyRoute
-  TmpCoursesCheckRoute: typeof TmpCoursesCheckRoute
   AffiliateCodeRoute: typeof AffiliateCodeRoute
 }
 
@@ -198,13 +185,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tmp-courses-check': {
-      id: '/tmp-courses-check'
-      path: '/tmp-courses-check'
-      fullPath: '/tmp-courses-check'
-      preLoaderRoute: typeof TmpCoursesCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/affiliate/$code': {
       id: '/affiliate/$code'
       path: '/affiliate/$code'
@@ -223,7 +203,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MentionsLegalesRoute: MentionsLegalesRoute,
   PrivacyRoute: PrivacyRoute,
-  TmpCoursesCheckRoute: TmpCoursesCheckRoute,
   AffiliateCodeRoute: AffiliateCodeRoute,
 }
 export const routeTree = rootRouteImport
