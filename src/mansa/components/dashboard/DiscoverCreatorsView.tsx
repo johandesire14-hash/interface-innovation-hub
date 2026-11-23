@@ -11,7 +11,6 @@ import {
   Building2,
   Lock,
   ExternalLink,
-  ChevronRight,
   Layers,
   ShoppingBag,
 } from "lucide-react";
@@ -253,20 +252,6 @@ export const DiscoverCreatorsView: React.FC<DiscoverCreatorsViewProps> = ({
     };
   }, []);
 
-  // Le mode compact est automatique sur les écrans étroits et complet sur desktop.
-  const [isCompact, setIsCompact] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(max-width: 1023px)").matches : false,
-  );
-
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 1023px)");
-    const handleViewportChange = (event: MediaQueryListEvent) => setIsCompact(event.matches);
-
-    setIsCompact(mediaQuery.matches);
-    mediaQuery.addEventListener("change", handleViewportChange);
-    return () => mediaQuery.removeEventListener("change", handleViewportChange);
-  }, []);
-
   const categories = [
     { id: "all", label: "Toutes les entreprises" },
     { id: "trading", label: "Trading & Forex" },
@@ -315,8 +300,6 @@ export const DiscoverCreatorsView: React.FC<DiscoverCreatorsViewProps> = ({
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
-
-  const showBanners = !isCompact;
 
   const handleEnterpriseClick = (ent: CreatorEnterpriseCard) => {
     if (onNavigateToEnterprise) {
@@ -390,84 +373,48 @@ export const DiscoverCreatorsView: React.FC<DiscoverCreatorsViewProps> = ({
             <div
               key={enterprise.id}
               onClick={() => handleEnterpriseClick(enterprise)}
-              className="group rounded-2xl border border-white/10 bg-[#12141c] hover:border-white/20 transition-colors duration-150 overflow-hidden flex flex-col justify-between cursor-pointer shadow-lg"
+              className="group rounded-2xl border border-white/10 bg-[#12141c] hover:border-white/20 transition-colors duration-150 overflow-hidden flex flex-col cursor-pointer shadow-lg"
             >
-              <div>
-                {/* 1. BANNIÈRE (visible si showBanners est actif) */}
-                {showBanners && (
-                  <div className="relative h-24 sm:h-28 w-full overflow-hidden bg-zinc-900 shrink-0">
-                    <img
-                      src={enterprise.bannerUrl}
-                      alt={enterprise.companyName}
-                      className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#12141c] via-transparent to-black/30" />
-                  </div>
-                )}
-
-                {/* 2. HEADER: Photo de profil + Nom entreprise + Par : Nom créateur */}
-                <div className={`p-4 ${showBanners ? "-mt-7" : "pt-4"} relative z-10 space-y-3`}>
-                  <div className="flex items-start justify-between gap-3">
-                    {/* Photo de profil (Enterprise Logo) */}
-                    <div className="size-12 rounded-2xl mansa-profile-avatar border-2 border-[#12141c] shadow-md overflow-hidden shrink-0 flex items-center justify-center">
-                      {enterprise.companyLogo ? (
-                        <img
-                          src={enterprise.companyLogo}
-                          alt={enterprise.companyName}
-                          className="size-full object-cover mansa-avatar-image"
-                        />
-                      ) : (
-                        <span className="text-xs font-black text-emerald-100">
-                          {enterprise.companyInitials}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Stats: Étoiles & Membres */}
-                    <div className="flex flex-col items-end gap-1">
-                      <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg">
-                        <Star className="size-3 fill-amber-400" />
-                        <span>{enterprise.rating.toFixed(1)}</span>
-                        <span className="text-zinc-500 font-normal">
-                          ({enterprise.reviewsCount})
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 text-[10px] font-mono text-zinc-400">
-                        <Users className="size-3 text-zinc-500" />
-                        <span>{enterprise.subscribersCount}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Nom de l'entreprise & Par : Créateur */}
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-sm font-bold text-white group-hover:text-[#00D26A] transition-colors truncate">
-                        {enterprise.companyName}
-                      </h3>
-                    </div>
-
-                    {/* Par : le nom du créateur (EXPLICIT USER REQUIREMENT) */}
-                    <p className="text-[11px] font-medium text-emerald-400 truncate">
-                      par :{" "}
-                      <span className="text-zinc-300 font-semibold">{enterprise.creatorName}</span>
-                    </p>
-                  </div>
-
-                  {/* Description coupée avec … si trop longue (EXPLICIT USER REQUIREMENT) */}
-                  <p
-                    className="text-xs text-zinc-400 leading-relaxed line-clamp-2 text-ellipsis font-light"
-                    title={enterprise.description}
-                  >
-                    {enterprise.description}
-                  </p>
-                </div>
+              {/* 1. PHOTO EN HAUT, FORMAT LARGE */}
+              <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-zinc-900 shrink-0">
+                <img
+                  src={enterprise.bannerUrl}
+                  alt={enterprise.companyName}
+                  className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#12141c] via-transparent to-black/20" />
               </div>
 
-              <div className="p-4 pt-2 border-t border-white/[0.06] flex justify-end">
-                <div className="flex items-center gap-1 text-xs font-bold text-white group-hover:text-[#00D26A] transition-colors">
-                  <span>Visiter</span>
-                  <ChevronRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <div className="p-4 flex flex-1 flex-col gap-2">
+                {/* 2. NOM DE L'ENTREPRISE À GAUCHE, ÉTOILE + NOTE À DROITE */}
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-bold text-white group-hover:text-[#00D26A] transition-colors truncate">
+                    {enterprise.companyName}
+                  </h3>
+                  <div className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg">
+                    <Star className="size-3 fill-amber-400" />
+                    <span>{enterprise.rating.toFixed(1)}</span>
+                  </div>
+                </div>
+
+                {/* 3. PAR : le nom du créateur (EXPLICIT USER REQUIREMENT) */}
+                <p className="text-[11px] font-medium text-emerald-400 truncate">
+                  par :{" "}
+                  <span className="text-zinc-300 font-semibold">{enterprise.creatorName}</span>
+                </p>
+
+                {/* 4. Description sur une seule ligne (EXPLICIT USER REQUIREMENT) */}
+                <p
+                  className="text-xs text-zinc-400 leading-relaxed line-clamp-1 text-ellipsis font-light"
+                  title={enterprise.description}
+                >
+                  {enterprise.description}
+                </p>
+
+                {/* 5. Nombre de membres en gras */}
+                <div className="mt-auto flex items-center gap-1.5 pt-1 text-xs font-bold text-white">
+                  <Users className="size-3.5 text-zinc-400" />
+                  <span>{enterprise.subscribersCount}</span>
                 </div>
               </div>
             </div>
