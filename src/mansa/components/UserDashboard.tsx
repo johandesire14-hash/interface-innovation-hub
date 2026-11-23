@@ -454,6 +454,11 @@ export const CreatorCoursesWorkspace: React.FC<{
       );
       const course: CreatorCourse = {
         id: savedByOffer[0]?.rowId || courseId,
+        offerId: editingCourseId
+          ? courses.find((existing) => existing.id === editingCourseId)?.offerId ||
+            productIds[0] ||
+            ""
+          : productIds[0] || "",
         title: title.trim(),
         description: description.trim(),
         chapters: savedByOffer[0]?.savedChapters || chapters,
