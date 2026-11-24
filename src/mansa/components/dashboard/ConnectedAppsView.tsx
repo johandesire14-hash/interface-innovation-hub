@@ -64,6 +64,7 @@ export interface TelegramChannelItem {
   isIncluded: boolean;
   linkedDate: string;
   botStatus: "admin" | "member" | "pending";
+  productIds?: string[];
 }
 
 export interface DiscordServerItem {
@@ -74,6 +75,7 @@ export interface DiscordServerItem {
   isIncluded: boolean;
   rolesManaged: string[];
   botStatus: "installed" | "pending";
+  productIds?: string[];
 }
 
 export interface ConnectedAppProductItem {
@@ -100,6 +102,8 @@ interface ConnectedAppsViewProps {
   companyId?: string;
   onOpenCoursesWorkflow?: (productIds: string[]) => void;
   onOpenFilesWorkflow?: (productIds: string[]) => void;
+  initialTelegramChannels?: TelegramChannelItem[];
+  initialDiscordServers?: DiscordServerItem[];
 }
 
 export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
@@ -111,6 +115,8 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
   companyId,
   onOpenCoursesWorkflow,
   onOpenFilesWorkflow,
+  initialTelegramChannels,
+  initialDiscordServers,
 }) => {
   // Current view state: 'catalog' | 'telegram' | 'telegram_wizard' | 'discord' | 'fan_purchases'
   const [subView, setSubView] = useState<
@@ -182,17 +188,44 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
   }, [availableProducts, companyId]);
 
   // Telegram Connected Channels list (In-memory)
-  const [telegramChannels, setTelegramChannels] = useState<TelegramChannelItem[]>([]);
+  const [telegramChannels, setTelegramChannels] = useState<TelegramChannelItem[]>(
+    () => initialTelegramChannels || [],
+  );
 
   // Available Telegram Channels
   const [availableChannels, setAvailableChannels] = useState<TelegramChannelItem[]>([]);
 
   // Discord Servers List (In-memory)
-  const [discordServers, setDiscordServers] = useState<DiscordServerItem[]>([]);
+  const [discordServers, setDiscordServers] = useState<DiscordServerItem[]>(
+    () => initialDiscordServers || [],
+  );
 
   // Available Discord Servers
   const [availableDiscordServers, setAvailableDiscordServers] = useState<DiscordServerItem[]>([]);
   const [discordSearchQuery, setDiscordSearchQuery] = useState("");
+
+  // Regroupement par produit : un élément lié à plusieurs produits apparaît dans chaque groupe
+  const groupByProduct = <T extends { productIds?: string[] }>(items: T[]) => {
+    const groups = effectiveProductsList
+      .map((p) => ({
+        id: p.id,
+        name: p.title,
+        items: items.filter((it) => (it.productIds || []).includes(p.id)),
+      }))
+      .filter((g) => g.items.length > 0);
+    const linkedIds = new Set(groups.flatMap((g) => g.items.map((it) => (it as any).id)));
+    const ungrouped = items.filter((it) => !linkedIds.has((it as any).id));
+    return { groups, ungrouped };
+  };
+
+  const telegramChannelsByProduct = useMemo(
+    () => groupByProduct(telegramChannels),
+    [telegramChannels, effectiveProductsList],
+  );
+  const discordServersByProduct = useMemo(
+    () => groupByProduct(discordServers),
+    [discordServers, effectiveProductsList],
+  );
 
   // Modals state for Discord
   const [isAddDiscordModalOpen, setIsAddDiscordModalOpen] = useState(false);
@@ -269,6 +302,7 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
             isIncluded: true,
             linkedDate: "À l'instant",
             botStatus: "admin",
+            ...(activeLinkedProduct ? { productIds: [activeLinkedProduct.id] } : {}),
           };
 
           setTelegramChannels((prev) => [
@@ -310,7 +344,14 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
   const handleAddChannelToIncluded = (channel: TelegramChannelItem) => {
     setTelegramChannels((prev) => {
       const filtered = prev.filter((c) => c.id !== channel.id && c.name !== channel.name);
-      return [...filtered, { ...channel, isIncluded: true }];
+      return [
+        ...filtered,
+        {
+          ...channel,
+          isIncluded: true,
+          ...(activeLinkedProduct ? { productIds: [activeLinkedProduct.id] } : {}),
+        },
+      ];
     });
     setAvailableChannels((prev) =>
       prev.filter((c) => c.id !== channel.id && c.name !== channel.name),
@@ -336,7 +377,14 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
   const handleAddDiscordServerToIncluded = (server: DiscordServerItem) => {
     setDiscordServers((prev) => {
       const filtered = prev.filter((s) => s.id !== server.id && s.name !== server.name);
-      return [...filtered, { ...server, isIncluded: true }];
+      return [
+        ...filtered,
+        {
+          ...server,
+          isIncluded: true,
+          ...(activeLinkedProduct ? { productIds: [activeLinkedProduct.id] } : {}),
+        },
+      ];
     });
     setAvailableDiscordServers((prev) =>
       prev.filter((s) => s.id !== server.id && s.name !== server.name),
@@ -372,6 +420,7 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
       isIncluded: true,
       rolesManaged: [initialRole],
       botStatus: "installed",
+      ...(activeLinkedProduct ? { productIds: [activeLinkedProduct.id] } : {}),
     };
 
     setDiscordServers((prev) => [
@@ -852,8 +901,25 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {telegramChannels.map((channel, idx) => (
+              <div className="space-y-6">
+                {[
+                  ...telegramChannelsByProduct.groups.map((g) => ({
+                    key: g.id,
+                    label: g.name,
+                    items: g.items,
+                  })),
+                  ...(telegramChannelsByProduct.ungrouped.length > 0
+                    ? [{ key: "ungrouped", label: null, items: telegramChannelsByProduct.ungrouped }]
+                    : []),
+                ].map((section) => (
+                  <section key={`tg-section-${section.key}`} className="space-y-2">
+                    {section.label && (
+                      <span className="inline-flex rounded-lg border border-[#229ED9]/20 bg-[#229ED9]/10 px-3 py-1.5 text-[11px] font-semibold text-[#229ED9]">
+                        Lié à {section.label}
+                      </span>
+                    )}
+                    <div className="space-y-2">
+                {section.items.map((channel, idx) => (
                   <div
                     key={`connected-tg-${channel.id || idx}`}
                     className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-[#0c0d0e] px-4 py-3.5 hover:border-white/15 transition-all group"
@@ -884,6 +950,9 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
                       <span>Supprimer</span>
                     </button>
                   </div>
+                ))}
+                    </div>
+                  </section>
                 ))}
               </div>
             )}
@@ -1259,8 +1328,25 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="space-y-3">
-                {discordServers.map((server) => (
+              <div className="space-y-6">
+                {[
+                  ...discordServersByProduct.groups.map((g) => ({
+                    key: g.id,
+                    label: g.name,
+                    items: g.items,
+                  })),
+                  ...(discordServersByProduct.ungrouped.length > 0
+                    ? [{ key: "ungrouped", label: null, items: discordServersByProduct.ungrouped }]
+                    : []),
+                ].map((section) => (
+                  <section key={`discord-section-${section.key}`} className="space-y-2">
+                    {section.label && (
+                      <span className="inline-flex rounded-lg border border-[#5865F2]/20 bg-[#5865F2]/10 px-3 py-1.5 text-[11px] font-semibold text-[#8c97f8]">
+                        Lié à {section.label}
+                      </span>
+                    )}
+                    <div className="space-y-3">
+                {section.items.map((server) => (
                   <div
                     key={server.id}
                     className="rounded-2xl border border-white/[0.08] bg-[#0c0d0e] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-white/15 transition-all"
@@ -1311,6 +1397,9 @@ export const ConnectedAppsView: React.FC<ConnectedAppsViewProps> = ({
                       </button>
                     </div>
                   </div>
+                ))}
+                    </div>
+                  </section>
                 ))}
               </div>
             )}
